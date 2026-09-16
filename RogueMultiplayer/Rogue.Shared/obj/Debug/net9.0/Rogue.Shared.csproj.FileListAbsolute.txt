@@ -1,0 +1,12 @@
+C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\bin\Debug\net9.0\Rogue.Shared.deps.json
+C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\bin\Debug\net9.0\Rogue.Shared.dll
+C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\bin\Debug\net9.0\Rogue.Shared.pdb
+C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\Rogue.Shared.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\Rogue.Shared.AssemblyInfoInputs.cache
+C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\Rogue.Shared.AssemblyInfo.cs
+C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\Rogue.Shared.csproj.CoreCompileInputs.cache
+C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\Rogue.Shared.sourcelink.json
+C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\Rogue.Shared.dll
+C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\refint\Rogue.Shared.dll
+C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\Rogue.Shared.pdb
+C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\ref\Rogue.Shared.dll

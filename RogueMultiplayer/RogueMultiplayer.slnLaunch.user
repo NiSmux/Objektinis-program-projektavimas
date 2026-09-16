@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "Rogue.Server\\Rogue.Server.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "Rogue.Client\\Rogue.Client.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

@@ -1,0 +1,29 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio cache/options
+.vs/
+
+# User-specific files (keep these out of git, they're per-developer)
+*.user
+*.suo
+
+# NuGet packages
+*.nupkg
+packages/
+!packages/build/
+
+# Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Publish output
+publish/
+*.pubxml
