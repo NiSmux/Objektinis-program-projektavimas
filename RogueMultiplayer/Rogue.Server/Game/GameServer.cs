@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Net.WebSockets;
+using Rogue.Server.Enemies;
 using Rogue.Shared.Models;
 
 namespace Rogue.Server.Game;
@@ -17,6 +18,8 @@ public class GameServer
     public ConcurrentDictionary<WebSocket, ConnectedClient> Clients { get; } = new();
 
     private int nextId = 1;
+
+    public EnemySpawner Spawner { get; } = new(new EnemyFactory());
 
     public PlayerState AddPlayer(WebSocket socket)
     {
@@ -37,8 +40,13 @@ public class GameServer
         Clients.TryRemove(socket, out _);
     }
 
+    /// <summary>Advances the enemy spawner by <paramref name="deltaTime"/> seconds.</summary>
+    public void Tick(float deltaTime) => Spawner.Update(deltaTime);
+
     public List<PlayerState> GetSnapshot()
     {
         return Clients.Values.Select(c => c.State).ToList();
     }
+
+    public List<EnemyState> GetEnemySnapshot() => Spawner.GetSnapshot();
 }

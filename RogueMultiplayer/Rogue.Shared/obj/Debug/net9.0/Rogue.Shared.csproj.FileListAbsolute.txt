@@ -10,3 +10,15 @@ C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\O
 C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\refint\Rogue.Shared.dll
 C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\Rogue.Shared.pdb
 C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\ref\Rogue.Shared.dll
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\bin\Debug\net9.0\Rogue.Shared.deps.json
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\bin\Debug\net9.0\Rogue.Shared.dll
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\bin\Debug\net9.0\Rogue.Shared.pdb
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\Rogue.Shared.GeneratedMSBuildEditorConfig.editorconfig
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\Rogue.Shared.AssemblyInfoInputs.cache
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\Rogue.Shared.AssemblyInfo.cs
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\Rogue.Shared.csproj.CoreCompileInputs.cache
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\Rogue.Shared.sourcelink.json
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\Rogue.Shared.dll
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\refint\Rogue.Shared.dll
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\Rogue.Shared.pdb
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Shared\obj\Debug\net9.0\ref\Rogue.Shared.dll

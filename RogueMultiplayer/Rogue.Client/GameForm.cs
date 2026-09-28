@@ -2,6 +2,7 @@ using Rogue.Client.Entities;
 using Rogue.Client.Input;
 using Rogue.Client.Networking;
 using Rogue.Client.Rendering;
+using Rogue.Shared.Models;
 using Rogue.Shared.Packets;
 using System.Numerics;
 
@@ -10,6 +11,7 @@ namespace Rogue.Client;
 public partial class GameForm : Form
 {
     private readonly Dictionary<int, Player> players = new();
+    private readonly Dictionary<int, EnemyState> enemies = new();
 
     private Player localPlayer = new();
     private int myId = -1;
@@ -79,7 +81,7 @@ public partial class GameForm : Form
 
     protected override void OnPaint(PaintEventArgs e)
     {
-        renderer.Draw(e.Graphics, players.Values);
+        renderer.Draw(e.Graphics, players.Values, enemies.Values);
     }
 
     private async Task ConnectToServer()
@@ -105,6 +107,7 @@ public partial class GameForm : Form
         }
 
         players.Clear();
+        enemies.Clear();
 
         foreach (var state in packet.Players)
         {
@@ -114,6 +117,9 @@ public partial class GameForm : Form
                 Y = state.Y
             };
         }
+
+        foreach (var e in packet.Enemies)
+            enemies[e.Id] = e;
 
         myId = packet.YourPlayerId;
 

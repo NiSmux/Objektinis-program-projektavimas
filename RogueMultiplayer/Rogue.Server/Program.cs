@@ -13,6 +13,9 @@ listener.Start();
 
 Console.WriteLine("Server running");
 
+// Background game loop: tick the spawner at ~20 ups and broadcast state.
+_ = GameLoop();
+
 while (true)
 {
     var context = await listener.GetContextAsync();
@@ -21,6 +24,22 @@ while (true)
         (await context.AcceptWebSocketAsync(null)).WebSocket;
 
     _ = HandleClient(socket);
+}
+
+async Task GameLoop()
+{
+    const float TickRate = 1f / 20f;          // 20 ticks per second
+    var delay = TimeSpan.FromSeconds(TickRate);
+
+    while (true)
+    {
+        server.Tick(TickRate);
+
+        if (server.Clients.Count > 0)
+            await BroadcastState();
+
+        await Task.Delay(delay);
+    }
 }
 
 async Task HandleClient(WebSocket socket)
@@ -62,7 +81,8 @@ async Task HandleClient(WebSocket socket)
 
 async Task BroadcastState()
 {
-    var snapshot = server.GetSnapshot();
+    var snapshot      = server.GetSnapshot();
+    var enemySnapshot = server.GetEnemySnapshot();
 
     var sendTasks = server.Clients.Select(async kvp =>
     {
@@ -74,7 +94,8 @@ async Task BroadcastState()
         GameStatePacket packet = new()
         {
             YourPlayerId = client.State.Id,   // personalized per recipient
-            Players = snapshot
+            Players      = snapshot,
+            Enemies      = enemySnapshot
         };
 
         byte[] bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(packet));
@@ -97,3 +118,4 @@ async Task BroadcastState()
 
     await Task.WhenAll(sendTasks);
 }
+

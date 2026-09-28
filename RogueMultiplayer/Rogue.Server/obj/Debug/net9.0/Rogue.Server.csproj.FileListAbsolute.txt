@@ -17,3 +17,22 @@ C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\O
 C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\obj\Debug\net9.0\Rogue.Server.pdb
 C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\obj\Debug\net9.0\Rogue.Server.genruntimeconfig.cache
 C:\Users\faust\OneDrive - Kaunas University of Technology\ketvirtas kursas\opp\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\obj\Debug\net9.0\ref\Rogue.Server.dll
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\bin\Debug\net9.0\Rogue.Server.exe
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\bin\Debug\net9.0\Rogue.Server.deps.json
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\bin\Debug\net9.0\Rogue.Server.runtimeconfig.json
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\bin\Debug\net9.0\Rogue.Server.dll
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\bin\Debug\net9.0\Rogue.Server.pdb
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\bin\Debug\net9.0\Rogue.Shared.dll
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\bin\Debug\net9.0\Rogue.Shared.pdb
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\obj\Debug\net9.0\Rogue.Server.csproj.AssemblyReference.cache
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\obj\Debug\net9.0\Rogue.Server.GeneratedMSBuildEditorConfig.editorconfig
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\obj\Debug\net9.0\Rogue.Server.AssemblyInfoInputs.cache
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\obj\Debug\net9.0\Rogue.Server.AssemblyInfo.cs
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\obj\Debug\net9.0\Rogue.Server.csproj.CoreCompileInputs.cache
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\obj\Debug\net9.0\Rogue.Server.sourcelink.json
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\obj\Debug\net9.0\Rogue.Se.9172328E.Up2Date
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\obj\Debug\net9.0\Rogue.Server.dll
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\obj\Debug\net9.0\refint\Rogue.Server.dll
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\obj\Debug\net9.0\Rogue.Server.pdb
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\obj\Debug\net9.0\Rogue.Server.genruntimeconfig.cache
+E:\uni\obijektinis\Objektinis-program-projektavimas\RogueMultiplayer\Rogue.Server\obj\Debug\net9.0\ref\Rogue.Server.dll
