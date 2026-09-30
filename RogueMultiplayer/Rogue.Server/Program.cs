@@ -95,7 +95,8 @@ async Task BroadcastState()
         {
             YourPlayerId = client.State.Id,   // personalized per recipient
             Players      = snapshot,
-            Enemies      = enemySnapshot
+            Enemies      = enemySnapshot,
+            Tiles = server.GetTileSnapshot()
         };
 
         byte[] bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(packet));
