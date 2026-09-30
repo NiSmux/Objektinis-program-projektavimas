@@ -1,9 +1,16 @@
 ﻿using Rogue.Server.Game;
+using Rogue.Server.Strategy;
 using Rogue.Shared.Packets;
 using System.Net;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+
+if (args.Contains("--strategy-demo"))
+{
+    StrategyDemo.Run();
+    return;
+}
 
 GameServer server = new();
 
@@ -28,12 +35,12 @@ while (true)
 
 async Task GameLoop()
 {
-    const float TickRate = 1f / 20f;          // 20 ticks per second
-    var delay = TimeSpan.FromSeconds(TickRate);
+    float tickRate = GameSettings.Instance.TickRate;
+    var delay = TimeSpan.FromSeconds(tickRate);
 
     while (true)
     {
-        server.Tick(TickRate);
+        server.Tick(tickRate);
 
         if (server.Clients.Count > 0)
             await BroadcastState();
