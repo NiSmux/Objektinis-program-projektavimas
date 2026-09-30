@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Net.WebSockets;
+using System.Numerics;
 using Rogue.Server.Enemies;
 using Rogue.Shared.Models;
 
@@ -40,8 +41,24 @@ public class GameServer
         Clients.TryRemove(socket, out _);
     }
 
-    /// <summary>Advances the enemy spawner by <paramref name="deltaTime"/> seconds.</summary>
-    public void Tick(float deltaTime) => Spawner.Update(deltaTime);
+    /// <summary>
+    /// Advances the enemy spawner by <paramref name="deltaTime"/> seconds and
+    /// moves every enemy toward its nearest player.
+    /// </summary>
+    public void Tick(float deltaTime)
+    {
+        Spawner.Update(deltaTime);
+
+        var players = GetSnapshot();
+        if (players.Count == 0)
+            return;
+
+        foreach (var enemy in Spawner.Enemies)
+        {
+            var target = players.MinBy(p => Vector2.DistanceSquared(enemy.Position, new Vector2(p.X, p.Y)))!;
+            enemy.Update(new Vector2(target.X, target.Y), deltaTime);
+        }
+    }
 
     public List<PlayerState> GetSnapshot()
     {

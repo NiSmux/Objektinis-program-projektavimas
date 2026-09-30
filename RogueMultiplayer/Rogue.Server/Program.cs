@@ -1,9 +1,16 @@
 ﻿using Rogue.Server.Game;
+using Rogue.Server.Strategy;
 using Rogue.Shared.Packets;
 using System.Net;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+
+if (args.Contains("--strategy-demo"))
+{
+    StrategyDemo.Run();
+    return;
+}
 
 GameServer server = new();
 
