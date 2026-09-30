@@ -28,12 +28,12 @@ while (true)
 
 async Task GameLoop()
 {
-    const float TickRate = 1f / 20f;          // 20 ticks per second
-    var delay = TimeSpan.FromSeconds(TickRate);
+    float tickRate = GameSettings.Instance.TickRate;
+    var delay = TimeSpan.FromSeconds(tickRate);
 
     while (true)
     {
-        server.Tick(TickRate);
+        server.Tick(tickRate);
 
         if (server.Clients.Count > 0)
             await BroadcastState();
