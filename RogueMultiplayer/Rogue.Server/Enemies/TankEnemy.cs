@@ -38,8 +38,8 @@ public class TankEnemy : Enemy
     /// <summary>The tank itself decides when to switch: every <see cref="PhaseDuration"/> seconds.</summary>
     protected override void ChooseStrategy(float deltaTime)
     {
-        // Fleeing (low health) overrides the attack cycle.
-        if (IsFleeing)
+        // Enraged (low health) overrides the attack cycle.
+        if (IsEnraged)
             return;
 
         _phaseTimer += deltaTime;

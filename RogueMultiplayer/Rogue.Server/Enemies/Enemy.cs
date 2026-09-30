@@ -13,11 +13,8 @@ namespace Rogue.Server.Enemies;
 /// </summary>
 public abstract class Enemy
 {
-    /// <summary>Health fraction below which the enemy switches to fleeing.</summary>
-    private const float FleeHealthFraction = 0.25f;
-
-    /// <summary>FleeStrategy is stateless, so every enemy shares this one instance.</summary>
-    private static readonly IMovementStrategy SharedFleeStrategy = new FleeStrategy();
+    /// <summary>Health fraction below which the enemy becomes enraged.</summary>
+    private const float EnrageHealthFraction = 0.25f;
 
     private IMovementStrategy _movementStrategy;
 
@@ -42,8 +39,8 @@ public abstract class Enemy
     /// <summary>Seconds this enemy has been updated for (used by time-based strategies).</summary>
     public float Age { get; private set; }
 
-    /// <summary>True once low health has switched this enemy to fleeing.</summary>
-    public bool IsFleeing { get; private set; }
+    /// <summary>True once low health has made this enemy switch to intercepting.</summary>
+    public bool IsEnraged { get; private set; }
 
     public Vector2 Position => new(X, Y);
 
@@ -77,16 +74,17 @@ public abstract class Enemy
 
     /// <summary>
     /// Reduces health. When health drops below 25% the enemy itself decides
-    /// to switch to <see cref="FleeStrategy"/>.
+    /// to get enraged and switch to <see cref="InterceptStrategy"/>.
     /// </summary>
     public void TakeDamage(float amount)
     {
         Health = MathF.Max(0f, Health - amount);
 
-        if (!IsFleeing && Health < MaxHealth * FleeHealthFraction)
+        if (!IsEnraged && Health < MaxHealth * EnrageHealthFraction)
         {
-            IsFleeing = true;
-            SetMovementStrategy(SharedFleeStrategy);
+            IsEnraged = true;
+            // New instance: InterceptStrategy remembers this enemy's last target position.
+            SetMovementStrategy(new InterceptStrategy());
         }
     }
 
