@@ -18,6 +18,7 @@ public class EnemySpawner
     private int _nextId = 1;
 
     private float _timeSinceLastSpawn;
+    public Func<int, int, bool>? IsBlocked { get; set; }
 
     public EnemySpawner(IEnemyFactory factory)
     {
@@ -61,8 +62,13 @@ public class EnemySpawner
         var types = Enum.GetValues<EnemyType>();
         var type = types[_random.Next(types.Length)];
 
-        float x = _random.Next(0, _settings.GridSize);
-        float y = _random.Next(0, _settings.GridSize);
+        int x, y, attempts = 0;
+        do
+        {
+            x = _random.Next(0, _settings.GridSize);
+            y = _random.Next(0, _settings.GridSize);
+        }
+        while (IsBlocked?.Invoke(x, y) == true && ++attempts < 50);
 
         return Spawn(type, x, y);
     }

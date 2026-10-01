@@ -38,23 +38,27 @@ public class NetworkClient
 
     private async Task ReceiveLoop()
     {
-        byte[] buffer = new byte[4096];
+        byte[] buffer = new byte[8192];
 
         try
         {
             while (socket.State == WebSocketState.Open)
             {
-                var result = await socket.ReceiveAsync(
-                    buffer,
-                    CancellationToken.None);
+                using var ms = new MemoryStream();
+                WebSocketReceiveResult result;
 
-                if (result.MessageType == WebSocketMessageType.Close)
-                    break;
+                do
+                {
+                    result = await socket.ReceiveAsync(buffer, CancellationToken.None);
 
-                string json = Encoding.UTF8.GetString(
-                    buffer,
-                    0,
-                    result.Count);
+                    if (result.MessageType == WebSocketMessageType.Close)
+                        return;
+
+                    ms.Write(buffer, 0, result.Count);
+                }
+                while (!result.EndOfMessage);
+
+                string json = Encoding.UTF8.GetString(ms.ToArray());
 
                 GameStatePacket? packet =
                     JsonSerializer.Deserialize<GameStatePacket>(json);
