@@ -1,10 +1,10 @@
+using Rogue.Client.Commands;
 using Rogue.Client.Entities;
 using Rogue.Client.Input;
 using Rogue.Client.Networking;
 using Rogue.Client.Rendering;
 using Rogue.Shared.Models;
 using Rogue.Shared.Packets;
-using System.Numerics;
 
 namespace Rogue.Client;
 
@@ -18,6 +18,7 @@ public partial class GameForm : Form
     private readonly Renderer renderer = new();
     private readonly InputManager input = new();
     private readonly NetworkClient network = new();
+    private readonly CommandInvoker invoker = new();
     private List<TileState> tiles = new();
 
     private readonly System.Windows.Forms.Timer gameTimer = new();
@@ -39,6 +40,13 @@ public partial class GameForm : Form
         KeyDown += (s, e) => input.KeyDown(e.KeyCode);
         KeyUp += (s, e) => input.KeyUp(e.KeyCode);
 
+        // Debug: press Z to undo the last move command (local-only, no server rollback).
+        KeyDown += (s, e) =>
+        {
+            if (e.KeyCode == Keys.Z)
+                invoker.UndoLast();
+        };
+
         gameTimer.Interval = 16;      // ~60 FPS
         gameTimer.Tick += GameLoop;
         gameTimer.Start();
@@ -51,21 +59,23 @@ public partial class GameForm : Form
         float dx = (input.Right ? 1 : 0) - (input.Left ? 1 : 0);
         float dy = (input.Down ? 1 : 0) - (input.Up ? 1 : 0);
 
-        float maxPos = Renderer.GridSize - 1;
+        // Update facing direction if there is any movement input
+        if (dx != 0f || dy != 0f)
+        {
+            localPlayer.FacingDx = dx;
+            localPlayer.FacingDy = dy;
+        }
 
-        float newX = Math.Clamp(localPlayer.X + dx * localPlayer.Speed * dt, 0, maxPos);
-        float newY = Math.Clamp(localPlayer.Y + dy * localPlayer.Speed * dt, 0, maxPos);
-
-        // Check each axis separately so the player slides along walls
-        if (!TileCollision.IsBlocked(tiles, newX, localPlayer.Y))
-            localPlayer.X = newX;
-
-        if (!TileCollision.IsBlocked(tiles, localPlayer.X, newY))
-            localPlayer.Y = newY;
+        // Command pattern: encapsulate movement as a command object.
+        // MoveCommand performs boundary clamping and wall-slide collision internally.
+        var moveCmd = new MoveCommand(localPlayer, dx, dy, dt, tiles);
+        invoker.Execute(moveCmd);
 
         _ = network.SendMoveAsync(
             localPlayer.X,
-            localPlayer.Y);
+            localPlayer.Y,
+            localPlayer.FacingDx,
+            localPlayer.FacingDy);
 
         if (myId != -1)
             players[myId] = localPlayer;
@@ -109,7 +119,12 @@ public partial class GameForm : Form
             players[state.Id] = new Player
             {
                 X = state.X,
-                Y = state.Y
+                Y = state.Y,
+                Health = state.Health,
+                MaxHealth = state.MaxHealth,
+                FacingDx = state.FacingDx,
+                FacingDy = state.FacingDy,
+                AttackAnimTimer = state.AttackAnimTimer
             };
         }
 
@@ -122,6 +137,9 @@ public partial class GameForm : Form
         {
             localPlayer.X = player.X;
             localPlayer.Y = player.Y;
+            localPlayer.Health = player.Health;
+            localPlayer.MaxHealth = player.MaxHealth;
+            localPlayer.AttackAnimTimer = player.AttackAnimTimer;
         }
 
         Invalidate();

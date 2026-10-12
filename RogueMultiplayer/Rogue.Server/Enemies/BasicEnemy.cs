@@ -13,6 +13,6 @@ public class BasicEnemy : Enemy
     {
         MaxHealth = 100f;
         Health = MaxHealth;
-        Speed = 3f;
+        Speed = 2.2f;
     }
 }

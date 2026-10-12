@@ -13,9 +13,9 @@ public class FastEnemy : Enemy
 
     public FastEnemy()
     {
-        MaxHealth = 50f;
+        MaxHealth = 20f;
         Health = MaxHealth;
-        Speed = 7f;
+        Speed = 2.9f;
 
         SetMovementStrategy(new ZigZagStrategy());
     }

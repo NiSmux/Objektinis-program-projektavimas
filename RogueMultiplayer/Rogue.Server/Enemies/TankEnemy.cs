@@ -22,7 +22,7 @@ public class TankEnemy : Enemy
     {
         MaxHealth = 300f;
         Health = MaxHealth;
-        Speed = 1.5f;
+        Speed = 1.3f;
 
         // Own instances: DashStrategy keeps per-enemy timers.
         _phases = new IMovementStrategy[]

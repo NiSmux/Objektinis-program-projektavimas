@@ -22,9 +22,15 @@ public class NetworkClient
 
     private readonly SemaphoreSlim sendLock = new(1, 1);
 
-    public async Task SendMoveAsync(float x, float y)
+    public async Task SendMoveAsync(float x, float y, float facingDx = 0f, float facingDy = 0f)
     {
-        var bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new MovePacket { X = x, Y = y }));
+        var bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new MovePacket
+        {
+            X = x,
+            Y = y,
+            FacingDx = facingDx,
+            FacingDy = facingDy
+        }));
         await sendLock.WaitAsync();
         try
         {

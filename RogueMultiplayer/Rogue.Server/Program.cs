@@ -71,6 +71,13 @@ async Task HandleClient(WebSocket socket)
             player.X = move.X;
             player.Y = move.Y;
 
+            // Preserve last facing if client stopped moving (dx=0, dy=0)
+            if (move.FacingDx != 0f || move.FacingDy != 0f)
+            {
+                player.FacingDx = move.FacingDx;
+                player.FacingDy = move.FacingDy;
+            }
+
             await BroadcastState();
         }
     }

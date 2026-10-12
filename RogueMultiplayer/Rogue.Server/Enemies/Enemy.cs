@@ -100,6 +100,8 @@ public abstract class Enemy
         Id = Id,
         X = X,
         Y = Y,
-        Type = EnemyType
+        Type = EnemyType,
+        Health = Health,
+        MaxHealth = MaxHealth
     };
 }
