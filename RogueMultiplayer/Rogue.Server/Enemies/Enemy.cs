@@ -89,6 +89,33 @@ public abstract class Enemy
     }
 
     /// <summary>
+    /// Prototype: shallow copy. Value fields (position, health, speed) are copied,
+    /// but the movement strategy object is SHARED with the original.
+    /// </summary>
+    public Enemy ShallowCopy() => (Enemy)MemberwiseClone();
+
+    /// <summary>
+    /// Prototype: deep copy. Like <see cref="ShallowCopy"/>, but every referenced
+    /// object (movement strategy, tank phases) is cloned too, so the copy is fully
+    /// independent of the original.
+    /// </summary>
+    public Enemy DeepCopy()
+    {
+        var copy = (Enemy)MemberwiseClone();
+        copy.CloneReferences();
+        return copy;
+    }
+
+    /// <summary>
+    /// Called on the fresh copy inside <see cref="DeepCopy"/> to replace shared
+    /// references with cloned ones. Subclasses with their own reference fields override it.
+    /// </summary>
+    protected virtual void CloneReferences()
+    {
+        _movementStrategy = _movementStrategy.Clone();
+    }
+
+    /// <summary>
     /// Hook called every tick before moving. Subclasses override it to swap
     /// their own strategy (e.g. on a timer). Does nothing by default.
     /// </summary>

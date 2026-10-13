@@ -18,4 +18,10 @@ public interface IMovementStrategy
     /// <param name="deltaTime">Elapsed time in seconds since the last tick.</param>
     /// <returns>Displacement (in tiles) to add to the enemy's position this tick.</returns>
     Vector2 CalculateMove(Enemy self, Vector2 targetPosition, float deltaTime);
+
+    /// <summary>
+    /// Returns an independent copy of this strategy, including its per-enemy state
+    /// (e.g. dash timers). Used by <see cref="Enemy.DeepCopy"/> (Prototype).
+    /// </summary>
+    IMovementStrategy Clone();
 }

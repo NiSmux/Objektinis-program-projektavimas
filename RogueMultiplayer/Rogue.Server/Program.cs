@@ -1,4 +1,5 @@
-﻿using Rogue.Server.Game;
+﻿using Rogue.Server.Enemies;
+using Rogue.Server.Game;
 using Rogue.Server.Strategy;
 using Rogue.Shared.Packets;
 using System.Net;
@@ -9,6 +10,12 @@ using System.Text.Json;
 if (args.Contains("--strategy-demo"))
 {
     StrategyDemo.Run();
+    return;
+}
+
+if (args.Contains("--prototype-demo"))
+{
+    PrototypeDemo.Run();
     return;
 }
 

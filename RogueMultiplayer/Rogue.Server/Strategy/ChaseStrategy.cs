@@ -22,4 +22,6 @@ public class ChaseStrategy : IMovementStrategy
 
         return toTarget / distance * step;
     }
+
+    public IMovementStrategy Clone() => (IMovementStrategy)MemberwiseClone();
 }

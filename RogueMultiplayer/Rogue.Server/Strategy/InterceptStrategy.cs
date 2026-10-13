@@ -46,4 +46,6 @@ public class InterceptStrategy : IMovementStrategy
 
         return toAim / aimDistance * step;
     }
+
+    public IMovementStrategy Clone() => (IMovementStrategy)MemberwiseClone();
 }

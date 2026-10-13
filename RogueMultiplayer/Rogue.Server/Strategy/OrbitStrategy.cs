@@ -38,4 +38,6 @@ public class OrbitStrategy : IMovementStrategy
 
         return velocity * deltaTime;
     }
+
+    public IMovementStrategy Clone() => (IMovementStrategy)MemberwiseClone();
 }

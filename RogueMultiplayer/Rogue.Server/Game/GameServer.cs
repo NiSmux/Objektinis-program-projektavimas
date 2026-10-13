@@ -28,7 +28,8 @@ public class GameServer
 
     private readonly List<Tile> _tiles;
 
-    public EnemySpawner Spawner { get; } = new(new EnemyFactory());
+    // Factory builds the prototypes once; every spawned enemy is a clone of one.
+    public EnemySpawner Spawner { get; } = new(new EnemyPrototypeRegistry(new EnemyFactory()));
 
     public GameServer()
     {
