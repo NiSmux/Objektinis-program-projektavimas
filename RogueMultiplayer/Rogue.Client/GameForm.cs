@@ -1,147 +1,104 @@
-using Rogue.Client.Commands;
-using Rogue.Client.Entities;
-using Rogue.Client.Input;
-using Rogue.Client.Networking;
+using Rogue.Client.Controllers;
+using Rogue.Client.Facade;
 using Rogue.Client.Rendering;
-using Rogue.Shared.Models;
-using Rogue.Shared.Packets;
+using Rogue.Client.UI;
 
 namespace Rogue.Client;
 
+/// <summary>
+/// Client class #3 of the Facade:
+/// Main game window and viewport. Interacts strictly through <see cref="IGameEngineFacade"/>,
+/// completely decoupled from networking, command internals, entity collections, and rendering math.
+/// </summary>
 public partial class GameForm : Form
 {
-    private readonly Dictionary<int, Player> players = new();
-    private readonly Dictionary<int, EnemyState> enemies = new();
+    private readonly IGameEngineFacade _gameFacade;
+    private readonly PlayerInputController _inputController;
+    private readonly System.Windows.Forms.Timer _gameTimer = new();
+    private DebugConsoleForm? _debugConsole;
 
-    private Player localPlayer = new();
-    private int myId = -1;
-    private readonly Renderer renderer = new();
-    private readonly InputManager input = new();
-    private readonly NetworkClient network = new();
-    private readonly CommandInvoker invoker = new();
-    private List<TileState> tiles = new();
+    public GameForm() : this(new GameEngineFacade())
+    {
+    }
 
-    private readonly System.Windows.Forms.Timer gameTimer = new();
-
-    public GameForm()
+    public GameForm(IGameEngineFacade gameFacade)
     {
         InitializeComponent();
-        network.GameStateReceived += OnGameStateReceived;
 
-        _ = ConnectToServer();
+        _gameFacade = gameFacade;
+        _inputController = new PlayerInputController(_gameFacade);
 
         DoubleBuffered = true;
         KeyPreview = true;
 
         ClientSize = new Size(
             Renderer.GridSize * Renderer.TileSize,
-            Renderer.GridSize * Renderer.TileSize);
+            Renderer.GridSize * Renderer.TileSize + 44);
 
-        KeyDown += (s, e) => input.KeyDown(e.KeyCode);
-        KeyUp += (s, e) => input.KeyUp(e.KeyCode);
+        KeyDown += OnKeyDown;
+        KeyUp += (s, e) => _inputController.HandleKeyUp(e.KeyCode);
 
-        // Debug: press Z to undo the last move command (local-only, no server rollback).
-        KeyDown += (s, e) =>
+        _gameFacade.StateChanged += OnStateChanged;
+
+        _gameTimer.Interval = 16; // ~60 FPS
+        _gameTimer.Tick += GameLoop;
+        _gameTimer.Start();
+
+        _ = _gameFacade.StartAsync();
+    }
+
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.KeyCode == Keys.F1)
         {
-            if (e.KeyCode == Keys.Z)
-                invoker.UndoLast();
-        };
+            ToggleDebugConsole();
+            return;
+        }
 
-        gameTimer.Interval = 16;      // ~60 FPS
-        gameTimer.Tick += GameLoop;
-        gameTimer.Start();
+        _inputController.HandleKeyDown(e.KeyCode);
+    }
+
+    private void ToggleDebugConsole()
+    {
+        if (_debugConsole == null || _debugConsole.IsDisposed)
+        {
+            _debugConsole = new DebugConsoleForm(_gameFacade);
+            _debugConsole.Show(this);
+        }
+        else if (_debugConsole.Visible)
+        {
+            _debugConsole.Hide();
+        }
+        else
+        {
+            _debugConsole.Show(this);
+        }
     }
 
     private void GameLoop(object? sender, EventArgs e)
     {
-        float dt = 1f / 60f;
+        const float dt = 1f / 60f;
 
-        float dx = (input.Right ? 1 : 0) - (input.Left ? 1 : 0);
-        float dy = (input.Down ? 1 : 0) - (input.Up ? 1 : 0);
-
-        // Update facing direction if there is any movement input
-        if (dx != 0f || dy != 0f)
-        {
-            localPlayer.FacingDx = dx;
-            localPlayer.FacingDy = dy;
-        }
-
-        // Command pattern: encapsulate movement as a command object.
-        // MoveCommand performs boundary clamping and wall-slide collision internally.
-        var moveCmd = new MoveCommand(localPlayer, dx, dy, dt, tiles);
-        invoker.Execute(moveCmd);
-
-        _ = network.SendMoveAsync(
-            localPlayer.X,
-            localPlayer.Y,
-            localPlayer.FacingDx,
-            localPlayer.FacingDy);
-
-        if (myId != -1)
-            players[myId] = localPlayer;
+        _inputController.Tick(dt);
+        _gameFacade.Update(dt);
 
         Invalidate();
     }
 
     protected override void OnPaint(PaintEventArgs e)
     {
-        renderer.Draw(e.Graphics, players.Values, enemies.Values, tiles);
+        _gameFacade.Render(e.Graphics);
     }
 
-    private async Task ConnectToServer()
-    {
-        try
-        {
-            await network.ConnectAsync();
-            Text = "Connected";
-        }
-        catch
-        {
-            Text = "Server not found";
-        }
-    }
-
-
-    private void OnGameStateReceived(GameStatePacket packet)
+    private void OnStateChanged()
     {
         if (InvokeRequired)
         {
-            Invoke(() => OnGameStateReceived(packet));
+            BeginInvoke(OnStateChanged);
             return;
         }
-        tiles = packet.Tiles;
 
-        players.Clear();
-        enemies.Clear();
-
-        foreach (var state in packet.Players)
-        {
-            players[state.Id] = new Player
-            {
-                X = state.X,
-                Y = state.Y,
-                Health = state.Health,
-                MaxHealth = state.MaxHealth,
-                FacingDx = state.FacingDx,
-                FacingDy = state.FacingDy,
-                AttackAnimTimer = state.AttackAnimTimer
-            };
-        }
-
-        foreach (var e in packet.Enemies)
-            enemies[e.Id] = e;
-
-        myId = packet.YourPlayerId;
-
-        if (players.TryGetValue(myId, out Player? player))
-        {
-            localPlayer.X = player.X;
-            localPlayer.Y = player.Y;
-            localPlayer.Health = player.Health;
-            localPlayer.MaxHealth = player.MaxHealth;
-            localPlayer.AttackAnimTimer = player.AttackAnimTimer;
-        }
-
+        Text = $"Rogue Multiplayer - {_gameFacade.ConnectionStatus}";
         Invalidate();
     }
 }

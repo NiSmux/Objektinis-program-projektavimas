@@ -1,4 +1,5 @@
-﻿using Rogue.Client.Entities;
+using Rogue.Client.Entities;
+using Rogue.Client.Subsystems;
 using Rogue.Shared.Models;
 
 namespace Rogue.Client.Rendering;
@@ -168,5 +169,46 @@ public class Renderer
 
         // Border
         g.DrawRectangle(Pens.DarkSlateGray, x, y, width, height);
+    }
+
+    /// <summary>
+    /// Renders floating combat feedback numbers and notifications.
+    /// </summary>
+    public void DrawFeedback(Graphics g, IEnumerable<FloatingCombatText> texts)
+    {
+        using var font = new Font(FontFamily.GenericSansSerif, 10f, FontStyle.Bold);
+        foreach (var text in texts)
+        {
+            float alpha = Math.Clamp(text.Lifetime / text.MaxLifetime, 0f, 1f);
+            int a = (int)(alpha * 255);
+            using var brush = new SolidBrush(Color.FromArgb(a, text.Color));
+
+            float px = text.X * TileSize;
+            float py = text.Y * TileSize;
+            g.DrawString(text.Text, font, brush, px, py);
+        }
+    }
+
+    /// <summary>
+    /// Renders an in-game status bar and keybinding cheat-sheet below the grid.
+    /// </summary>
+    public void DrawHud(Graphics g, Player localPlayer, string connectionStatus, int enemyCount)
+    {
+        int hudTop = GridSize * TileSize;
+        int hudWidth = GridSize * TileSize;
+        const int hudHeight = 44;
+
+        using var bgBrush = new SolidBrush(Color.FromArgb(220, 25, 25, 30));
+        g.FillRectangle(bgBrush, 0, hudTop, hudWidth, hudHeight);
+        g.DrawLine(Pens.DimGray, 0, hudTop, hudWidth, hudTop);
+
+        using var font = new Font(FontFamily.GenericSansSerif, 7.5f, FontStyle.Regular);
+        using var boldFont = new Font(FontFamily.GenericSansSerif, 7.5f, FontStyle.Bold);
+
+        string statusLine = $"Status: {connectionStatus} | HP: {localPlayer.Health:0}/{localPlayer.MaxHealth:0} | Foes: {enemyCount}";
+        g.DrawString(statusLine, boldFont, Brushes.Gold, 6, hudTop + 4);
+
+        string controlsLine = "[WASD] Move  [SPACE] Dash  [Q] Potion  [Z] Recall  [F1] Dev Tools";
+        g.DrawString(controlsLine, font, Brushes.LightGray, 6, hudTop + 22);
     }
 }
