@@ -1,9 +1,10 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Numerics;
 using Rogue.Server.Combat;
 using Rogue.Server.Enemies;
 using Rogue.Server.Map;
+using Rogue.Server.Observer;
 using Rogue.Shared.Models;
 
 namespace Rogue.Server.Game;
@@ -20,9 +21,56 @@ public class ConnectedClient
     public ConnectedClient(PlayerState state) => State = state;
 }
 
-public class GameServer
+public class GameServer : IGameSubject
 {
     public ConcurrentDictionary<WebSocket, ConnectedClient> Clients { get; } = new();
+
+    private readonly List<IGameObserver> _observers = new();
+    private readonly object _observerLock = new();
+
+    public int ObserverCount
+    {
+        get
+        {
+            lock (_observerLock) return _observers.Count;
+        }
+    }
+
+    public void Attach(IGameObserver observer)
+    {
+        if (observer == null) throw new ArgumentNullException(nameof(observer));
+        lock (_observerLock)
+        {
+            if (!_observers.Contains(observer))
+            {
+                _observers.Add(observer);
+            }
+        }
+    }
+
+    public void Detach(IGameObserver observer)
+    {
+        if (observer == null) return;
+        lock (_observerLock)
+        {
+            _observers.Remove(observer);
+        }
+    }
+
+    public async Task NotifyAsync()
+    {
+        List<IGameObserver> snapshot;
+        lock (_observerLock)
+        {
+            snapshot = new List<IGameObserver>(_observers);
+        }
+
+        if (snapshot.Count == 0)
+            return;
+
+        var tasks = snapshot.Select(o => o.UpdateAsync(this));
+        await Task.WhenAll(tasks);
+    }
 
     private int nextId = 1;
 
