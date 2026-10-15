@@ -39,4 +39,6 @@ public class ZigZagStrategy : IMovementStrategy
 
         return (forward + side * (_amplitude * wave)) * forwardStep;
     }
+
+    public IMovementStrategy Clone() => (IMovementStrategy)MemberwiseClone();
 }

@@ -12,7 +12,8 @@ public class TankEnemy : Enemy
 {
     private const float PhaseDuration = 4f;
 
-    private readonly IMovementStrategy[] _phases;
+    // Not readonly: DeepCopy replaces it with cloned phases.
+    private IMovementStrategy[] _phases;
     private int _phaseIndex;
     private float _phaseTimer;
 
@@ -49,5 +50,21 @@ public class TankEnemy : Enemy
         _phaseTimer = 0f;
         _phaseIndex = (_phaseIndex + 1) % _phases.Length;
         SetMovementStrategy(_phases[_phaseIndex]);
+    }
+
+    /// <summary>
+    /// Deep copy also clones the phase array, and keeps the active strategy
+    /// pointing at the copy's own phase instead of the original's.
+    /// </summary>
+    protected override void CloneReferences()
+    {
+        int activePhase = Array.IndexOf(_phases, GetMovementStrategy());
+
+        _phases = _phases.Select(phase => phase.Clone()).ToArray();
+
+        if (activePhase >= 0)
+            SetMovementStrategy(_phases[activePhase]);
+        else
+            base.CloneReferences(); // enraged: active strategy is not one of the phases
     }
 }

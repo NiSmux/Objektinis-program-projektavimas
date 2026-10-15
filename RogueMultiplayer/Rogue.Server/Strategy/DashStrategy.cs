@@ -54,4 +54,6 @@ public class DashStrategy : IMovementStrategy
 
         return _dashDirection * (self.Speed * _speedMultiplier * deltaTime);
     }
+
+    public IMovementStrategy Clone() => (IMovementStrategy)MemberwiseClone();
 }
