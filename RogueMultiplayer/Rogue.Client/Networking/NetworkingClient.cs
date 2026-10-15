@@ -22,9 +22,15 @@ public class NetworkClient
 
     private readonly SemaphoreSlim sendLock = new(1, 1);
 
-    public async Task SendMoveAsync(float x, float y)
+    public async Task SendMoveAsync(float x, float y, float facingDx = 0f, float facingDy = 0f)
     {
-        var bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new MovePacket { X = x, Y = y }));
+        var bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new MovePacket
+        {
+            X = x,
+            Y = y,
+            FacingDx = facingDx,
+            FacingDy = facingDy
+        }));
         await sendLock.WaitAsync();
         try
         {
@@ -38,23 +44,27 @@ public class NetworkClient
 
     private async Task ReceiveLoop()
     {
-        byte[] buffer = new byte[4096];
+        byte[] buffer = new byte[8192];
 
         try
         {
             while (socket.State == WebSocketState.Open)
             {
-                var result = await socket.ReceiveAsync(
-                    buffer,
-                    CancellationToken.None);
+                using var ms = new MemoryStream();
+                WebSocketReceiveResult result;
 
-                if (result.MessageType == WebSocketMessageType.Close)
-                    break;
+                do
+                {
+                    result = await socket.ReceiveAsync(buffer, CancellationToken.None);
 
-                string json = Encoding.UTF8.GetString(
-                    buffer,
-                    0,
-                    result.Count);
+                    if (result.MessageType == WebSocketMessageType.Close)
+                        return;
+
+                    ms.Write(buffer, 0, result.Count);
+                }
+                while (!result.EndOfMessage);
+
+                string json = Encoding.UTF8.GetString(ms.ToArray());
 
                 GameStatePacket? packet =
                     JsonSerializer.Deserialize<GameStatePacket>(json);

@@ -9,4 +9,6 @@ public class GameStatePacket
     public List<PlayerState> Players { get; set; } = new();
 
     public List<EnemyState> Enemies { get; set; } = new();
+
+    public List<TileState> Tiles { get; set; } = new();
 }

@@ -1,4 +1,5 @@
-﻿using Rogue.Client.Entities;
+using Rogue.Client.Entities;
+using Rogue.Client.Subsystems;
 using Rogue.Shared.Models;
 
 namespace Rogue.Client.Rendering;
@@ -8,8 +9,20 @@ public class Renderer
     public const int TileSize = 32;
     public const int GridSize = 9;
 
-    public void Draw(Graphics g, IEnumerable<Player> players, IEnumerable<EnemyState> enemies)
+    private static readonly Brush WaterWallBrush = new SolidBrush(Color.FromArgb(30, 80, 170));
+    private static readonly Brush WaterFloorBrush = new SolidBrush(Color.FromArgb(130, 180, 235));
+    private static readonly Brush LavaWallBrush = new SolidBrush(Color.FromArgb(210, 60, 0));
+    private static readonly Brush LavaFloorBrush = new SolidBrush(Color.FromArgb(90, 35, 25));
+
+    public void Draw(
+        Graphics g,
+        IEnumerable<Player> players,
+        IEnumerable<EnemyState> enemies,
+        IEnumerable<TileState> tiles)
     {
+        foreach (var tile in tiles)
+            DrawTile(g, tile);
+
         DrawGrid(g);
 
         foreach (var enemy in enemies)
@@ -17,6 +30,31 @@ public class Renderer
 
         foreach (var player in players)
             DrawPlayer(g, player);
+    }
+
+    private void DrawTile(Graphics g, TileState tile)
+    {
+        Brush brush = tile.Type switch
+        {
+            TileType.WaterWall => WaterWallBrush,
+            TileType.WaterFloor => WaterFloorBrush,
+            TileType.LavaWall => LavaWallBrush,
+            TileType.LavaFloor => LavaFloorBrush,
+            _ => Brushes.Magenta
+        };
+
+        int px = tile.X * TileSize;
+        int py = tile.Y * TileSize;
+
+        g.FillRectangle(brush, px, py, TileSize, TileSize);
+
+        bool isWall = tile.Type is TileType.WaterWall or TileType.LavaWall;
+        if (isWall)
+        {
+            g.DrawRectangle(Pens.Black, px + 2, py + 2, TileSize - 4, TileSize - 4);
+            string mark = tile.Type == TileType.WaterWall ? "~" : "^";
+            g.DrawString(mark, SystemFonts.DefaultFont, Brushes.White, px + 11, py + 9);
+        }
     }
 
     private void DrawGrid(Graphics g)
@@ -32,12 +70,59 @@ public class Renderer
 
     private void DrawPlayer(Graphics g, Player player)
     {
+        float px = player.X * TileSize;
+        float py = player.Y * TileSize;
+
+        // Player body
         g.FillEllipse(
-            Brushes.DodgerBlue,
-            player.X * TileSize,
-            player.Y * TileSize,
+            player.Health > 0 ? Brushes.DodgerBlue : Brushes.DimGray,
+            px,
+            py,
             TileSize,
             TileSize);
+
+        // Facing direction & visual line of attack
+        float fLen = MathF.Sqrt(player.FacingDx * player.FacingDx + player.FacingDy * player.FacingDy);
+        if (fLen > 0.001f && player.Health > 0)
+        {
+            float ndx = player.FacingDx / fLen;
+            float ndy = player.FacingDy / fLen;
+
+            float centerX = px + TileSize / 2f;
+            float centerY = py + TileSize / 2f;
+
+            // Attack line & slash ONLY appears when an attack is actively being executed
+            if (player.AttackAnimTimer > 0f)
+            {
+                float reachPixels = 1.2f * TileSize;
+                float endX = centerX + ndx * reachPixels;
+                float endY = centerY + ndy * reachPixels;
+
+                // Bright golden attack beam
+                using var attackPen = new Pen(Color.FromArgb(240, 255, 215, 0), 3f);
+                g.DrawLine(attackPen, centerX, centerY, endX, endY);
+
+                // Whip slash cross-bar showing sweep area
+                float perpX = -ndy;
+                float perpY = ndx;
+                float halfWidthPixels = 0.6f * TileSize;
+                using var slashPen = new Pen(Color.FromArgb(255, 255, 240, 120), 2.5f);
+                g.DrawLine(
+                    slashPen,
+                    endX - perpX * halfWidthPixels,
+                    endY - perpY * halfWidthPixels,
+                    endX + perpX * halfWidthPixels,
+                    endY + perpY * halfWidthPixels);
+            }
+
+            // Always visible: small indicator dot on the player showing facing orientation
+            float indicatorX = centerX + ndx * (TileSize / 2f - 4) - 3;
+            float indicatorY = centerY + ndy * (TileSize / 2f - 4) - 3;
+            g.FillEllipse(Brushes.White, indicatorX, indicatorY, 6, 6);
+        }
+
+        // Health bar above player
+        DrawHealthBar(g, px, py - 6, TileSize, 4, player.Health, player.MaxHealth, Brushes.LimeGreen);
     }
 
     private void DrawEnemy(Graphics g, EnemyState enemy)
@@ -45,17 +130,17 @@ public class Renderer
         Brush brush = enemy.Type switch
         {
             EnemyType.Basic => Brushes.OrangeRed,
-            EnemyType.Fast  => Brushes.Yellow,
-            EnemyType.Tank  => Brushes.MediumPurple,
-            _               => Brushes.White
+            EnemyType.Fast => Brushes.Yellow,
+            EnemyType.Tank => Brushes.MediumPurple,
+            _ => Brushes.White
         };
 
         string label = enemy.Type switch
         {
             EnemyType.Basic => "B",
-            EnemyType.Fast  => "F",
-            EnemyType.Tank  => "T",
-            _               => "?"
+            EnemyType.Fast => "F",
+            EnemyType.Tank => "T",
+            _ => "?"
         };
 
         float px = enemy.X * TileSize;
@@ -63,5 +148,67 @@ public class Renderer
 
         g.FillRectangle(brush, px, py, TileSize, TileSize);
         g.DrawString(label, SystemFonts.DefaultFont, Brushes.Black, px + 10, py + 8);
+
+        // Enemy health bar above enemy
+        DrawHealthBar(g, px, py - 6, TileSize, 4, enemy.Health, enemy.MaxHealth, Brushes.Red);
+    }
+
+    private static void DrawHealthBar(Graphics g, float x, float y, float width, float height, float current, float max, Brush fillBrush)
+    {
+        if (max <= 0f) return;
+
+        // Background
+        g.FillRectangle(Brushes.Black, x, y, width, height);
+
+        // Health fill
+        float pct = Math.Clamp(current / max, 0f, 1f);
+        if (pct > 0f)
+        {
+            g.FillRectangle(fillBrush, x, y, width * pct, height);
+        }
+
+        // Border
+        g.DrawRectangle(Pens.DarkSlateGray, x, y, width, height);
+    }
+
+    /// <summary>
+    /// Renders floating combat feedback numbers and notifications.
+    /// </summary>
+    public void DrawFeedback(Graphics g, IEnumerable<FloatingCombatText> texts)
+    {
+        using var font = new Font(FontFamily.GenericSansSerif, 10f, FontStyle.Bold);
+        foreach (var text in texts)
+        {
+            float alpha = Math.Clamp(text.Lifetime / text.MaxLifetime, 0f, 1f);
+            int a = (int)(alpha * 255);
+            using var brush = new SolidBrush(Color.FromArgb(a, text.Color));
+
+            float px = text.X * TileSize;
+            float py = text.Y * TileSize;
+            g.DrawString(text.Text, font, brush, px, py);
+        }
+    }
+
+    /// <summary>
+    /// Renders an in-game status bar and keybinding cheat-sheet below the grid.
+    /// </summary>
+    public void DrawHud(Graphics g, Player localPlayer, string connectionStatus, int enemyCount)
+    {
+        int hudTop = GridSize * TileSize;
+        int hudWidth = GridSize * TileSize;
+        const int hudHeight = 44;
+
+        using var bgBrush = new SolidBrush(Color.FromArgb(220, 25, 25, 30));
+        g.FillRectangle(bgBrush, 0, hudTop, hudWidth, hudHeight);
+        g.DrawLine(Pens.DimGray, 0, hudTop, hudWidth, hudTop);
+
+        using var font = new Font(FontFamily.GenericSansSerif, 7.5f, FontStyle.Regular);
+        using var boldFont = new Font(FontFamily.GenericSansSerif, 7.5f, FontStyle.Bold);
+
+        string statusLine = $"Status: {connectionStatus} | HP: {localPlayer.Health:0}/{localPlayer.MaxHealth:0} | Foes: {enemyCount}";
+        g.DrawString(statusLine, boldFont, Brushes.Gold, 6, hudTop + 4);
+
+        string controlsLine = "[WASD] Move  [SPACE] Dash  [Q] Potion  [Z] Recall  [F1] Dev Tools";
+        g.DrawString(controlsLine, font, Brushes.LightGray, 6, hudTop + 22);
     }
 }

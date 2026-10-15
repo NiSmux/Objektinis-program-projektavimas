@@ -1,3 +1,4 @@
+using Rogue.Server.Game;
 using Rogue.Shared.Models;
 
 namespace Rogue.Server.Enemies;
@@ -12,19 +13,12 @@ public class EnemySpawner
     private readonly IEnemyFactory _factory;
     private readonly List<Enemy> _enemies = new();
     private readonly Random _random = new();
+    private readonly GameSettings _settings = GameSettings.Instance;
 
     private int _nextId = 1;
 
-    /// <summary>Grid size used when randomising spawn positions.</summary>
-    public int GridSize { get; set; } = 9;
-
-    /// <summary>Seconds between automatic spawns.</summary>
-    public float SpawnInterval { get; set; } = 5f;
-
-    /// <summary>Maximum number of enemies allowed on the map at once.</summary>
-    public int MaxEnemies { get; set; } = 20;
-
     private float _timeSinceLastSpawn;
+    public Func<int, int, bool>? IsBlocked { get; set; }
 
     public EnemySpawner(IEnemyFactory factory)
     {
@@ -43,7 +37,7 @@ public class EnemySpawner
     {
         _timeSinceLastSpawn += deltaTime;
 
-        if (_timeSinceLastSpawn >= SpawnInterval && _enemies.Count < MaxEnemies)
+        if (_timeSinceLastSpawn >= _settings.SpawnInterval && _enemies.Count < _settings.MaxEnemies)
         {
             SpawnRandom();
             _timeSinceLastSpawn = 0f;
@@ -68,8 +62,13 @@ public class EnemySpawner
         var types = Enum.GetValues<EnemyType>();
         var type = types[_random.Next(types.Length)];
 
-        float x = _random.Next(0, GridSize);
-        float y = _random.Next(0, GridSize);
+        int x, y, attempts = 0;
+        do
+        {
+            x = _random.Next(0, _settings.GridSize);
+            y = _random.Next(0, _settings.GridSize);
+        }
+        while (IsBlocked?.Invoke(x, y) == true && ++attempts < 50);
 
         return Spawn(type, x, y);
     }
