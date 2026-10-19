@@ -1,4 +1,5 @@
 using Rogue.Server.Adapter;
+using Rogue.Server.Bridge;
 using Rogue.Server.Builder;
 using Rogue.Server.Enemies;
 using Rogue.Server.Game;
@@ -25,6 +26,12 @@ if (args.Contains("--prototype-demo"))
 if (args.Contains("--builder-demo"))
 {
     BuilderDemo.Run();
+    return;
+}
+
+if (args.Contains("--bridge-demo"))
+{
+    BridgeDemo.Run();
     return;
 }
 

@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Numerics;
 using Rogue.Server.Adapter;
+using Rogue.Server.Bridge;
 using Rogue.Server.Builder;
 using Rogue.Server.Combat;
 using Rogue.Server.Enemies;
@@ -16,8 +17,16 @@ public class ConnectedClient
     public PlayerState State { get; }
     public SemaphoreSlim SendLock { get; } = new(1, 1);
 
-    // Adapter: external spear used through the IWeapon interface.
-    public IWeapon Weapon { get; set; } = new SpearWeaponAdapter(new ThirdPartySpear());
+    // Bridge: the attack pattern (abstraction) decides where the attack lands and
+    // delegates damage, interval and reach to its weapon (implementor).
+    // Adapter: that weapon is the external spear, used through the IWeapon interface.
+    public AttackPattern Attack { get; set; } = new FrontalAttack(new SpearWeaponAdapter(new ThirdPartySpear()));
+
+    public IWeapon Weapon
+    {
+        get => Attack.Weapon;
+        set => Attack.Weapon = value;
+    }
     public float AttackCooldown { get; set; } = 0f;
     public float DamageCooldown { get; set; } = 0f;
 
@@ -142,7 +151,7 @@ public class GameServer : IGameSubject
             enemy.Update(new Vector2(target.X, target.Y), deltaTime);
         }
 
-        // 2. Player Attacks (Directional Whip)
+        // 2. Player Attacks (Bridge: attack pattern + weapon)
         foreach (var client in clients)
         {
             if (client.State.AttackAnimTimer > 0f)
@@ -158,9 +167,9 @@ public class GameServer : IGameSubject
             if (client.AttackCooldown <= 0f)
             {
                 // Reset cooldown using Interval. Ensures at most one attack per tick.
-                client.AttackCooldown = client.Weapon.Interval;
+                client.AttackCooldown = client.Attack.Interval;
                 client.State.AttackAnimTimer = 0.15f; // Active visual swing duration
-                ExecuteWhipAttack(client);
+                client.Attack.Execute(client.State, Spawner.Enemies);
             }
         }
 
@@ -204,63 +213,6 @@ public class GameServer : IGameSubject
         foreach (var deadId in deadEnemyIds)
         {
             Spawner.RemoveEnemy(deadId);
-        }
-    }
-
-    /// <summary>
-    /// Executes a directional whip attack for a player.
-    /// Hits enemies in an oriented rectangular area in front of the player.
-    /// Supports all 8 directions (including diagonals) using rotated coordinate projection.
-    /// </summary>
-    private void ExecuteWhipAttack(ConnectedClient client)
-    {
-        var player = client.State;
-        var weapon = client.Weapon;
-
-        Vector2 facing = new(player.FacingDx, player.FacingDy);
-        if (facing.LengthSquared() < 0.0001f)
-        {
-            // Default facing if zero
-            facing = new Vector2(1f, 0f);
-        }
-        else
-        {
-            facing = Vector2.Normalize(facing);
-        }
-
-        // Perpendicular vector for the width of the attack rectangle
-        Vector2 perp = new(-facing.Y, facing.X);
-
-        Vector2 playerPos = new(player.X, player.Y);
-
-        // Track damaged enemies to prevent multiple hits to the same enemy in a single attack
-        HashSet<int> hitEnemies = new();
-
-        foreach (var enemy in Spawner.Enemies)
-        {
-            if (enemy.Health <= 0)
-                continue;
-
-            Vector2 toEnemy = enemy.Position - playerPos;
-
-            // Project onto forward facing vector and perpendicular vector
-            float forwardDist = Vector2.Dot(toEnemy, facing);
-            float sideDist = MathF.Abs(Vector2.Dot(toEnemy, perp));
-
-            // Enemy can be on top of player (within 0.7 radius) OR inside the forward reach rectangle
-            float distSq = toEnemy.LengthSquared();
-            bool onTopOfPlayer = distSq <= 0.7f * 0.7f;
-            bool insideWhipRect = forwardDist >= -0.3f && forwardDist <= weapon.Reach && sideDist <= weapon.HalfWidth;
-
-            if (onTopOfPlayer || insideWhipRect)
-            {
-                // HashSet ensures each individual enemy is hit once per swing even if overlapping both conditions
-                // Multiple different enemies in range are all added and all receive damage
-                if (hitEnemies.Add(enemy.Id))
-                {
-                    enemy.TakeDamage(weapon.Damage);
-                }
-            }
         }
     }
 
