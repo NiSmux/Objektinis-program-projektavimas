@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Numerics;
+using Rogue.Server.Adapter;
+using Rogue.Server.Builder;
 using Rogue.Server.Combat;
 using Rogue.Server.Enemies;
 using Rogue.Server.Map;
@@ -14,7 +16,8 @@ public class ConnectedClient
     public PlayerState State { get; }
     public SemaphoreSlim SendLock { get; } = new(1, 1);
 
-    public IWeapon Weapon { get; set; } = new WhipWeapon();
+    // Adapter: external spear used through the IWeapon interface.
+    public IWeapon Weapon { get; set; } = new SpearWeaponAdapter(new ThirdPartySpear());
     public float AttackCooldown { get; set; } = 0f;
     public float DamageCooldown { get; set; } = 0f;
 
@@ -81,9 +84,16 @@ public class GameServer : IGameSubject
 
     public GameServer()
     {
-        // Left half of the map is water, right half is lava.
-        var generator = new MapGenerator(new WaterThemeFactory(), new LavaThemeFactory());
-        _tiles = generator.Generate(9, spawnX: 3, spawnY: 3);
+        // Builder: the director assembles the map step by step with a concrete builder.
+        // A new random seed and theme on every server start gives a different cave each time.
+        int seed = Random.Shared.Next();
+        IMapThemeFactory theme = Random.Shared.Next(2) == 0 ? new WaterThemeFactory() : new LavaThemeFactory();
+        Console.WriteLine($"Map: {theme.Name} cave, seed {seed}");
+
+        var director = new MapDirector();
+        GameMap map = director.BuildFullMap(new CaveMapBuilder(theme, seed),
+                                            GameSettings.Instance.GridSize, spawnX: 3, spawnY: 3);
+        _tiles = map.Tiles.ToList();
 
         // Stop enemies from spawning inside walls.
         Spawner.IsBlocked = IsBlocked;

@@ -1,3 +1,5 @@
+using Rogue.Server.Adapter;
+using Rogue.Server.Builder;
 using Rogue.Server.Enemies;
 using Rogue.Server.Game;
 using Rogue.Server.Observer;
@@ -17,6 +19,18 @@ if (args.Contains("--strategy-demo"))
 if (args.Contains("--prototype-demo"))
 {
     PrototypeDemo.Run();
+    return;
+}
+
+if (args.Contains("--builder-demo"))
+{
+    BuilderDemo.Run();
+    return;
+}
+
+if (args.Contains("--adapter-demo"))
+{
+    AdapterDemo.Run();
     return;
 }
 
