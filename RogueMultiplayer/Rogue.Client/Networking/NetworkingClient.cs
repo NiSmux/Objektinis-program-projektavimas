@@ -1,4 +1,4 @@
-﻿using System.Net.WebSockets;
+using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using Rogue.Shared.Packets;
@@ -34,7 +34,30 @@ public class NetworkClient
         await sendLock.WaitAsync();
         try
         {
-            await socket.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);
+            if (socket.State == WebSocketState.Open)
+            {
+                await socket.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);
+            }
+        }
+        finally
+        {
+            sendLock.Release();
+        }
+    }
+
+    public async Task SendUpgradeAsync(string upgradeType)
+    {
+        var bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new UpgradePacket
+        {
+            UpgradeType = upgradeType
+        }));
+        await sendLock.WaitAsync();
+        try
+        {
+            if (socket.State == WebSocketState.Open)
+            {
+                await socket.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);
+            }
         }
         finally
         {

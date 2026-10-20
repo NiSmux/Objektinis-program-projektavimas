@@ -18,6 +18,8 @@ public class SpearWeaponAdapter : IWeapon
 
     public SpearWeaponAdapter(ThirdPartySpear spear) => _spear = spear;
 
+    public string Name => "Spear";
+
     public float Damage => _spear.GetAttackPower();
 
     // Attacks per minute -> seconds between attacks.

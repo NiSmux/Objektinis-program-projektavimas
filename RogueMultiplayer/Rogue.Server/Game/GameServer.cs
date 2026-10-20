@@ -14,6 +14,7 @@ namespace Rogue.Server.Game;
 
 public class ConnectedClient
 {
+    private readonly object _weaponLock = new();
     public PlayerState State { get; }
     public SemaphoreSlim SendLock { get; } = new(1, 1);
 
@@ -24,8 +25,8 @@ public class ConnectedClient
 
     public IWeapon Weapon
     {
-        get => Attack.Weapon;
-        set => Attack.Weapon = value;
+        get { lock (_weaponLock) return Attack.Weapon; }
+        set { lock (_weaponLock) Attack.Weapon = value; }
     }
     public float AttackCooldown { get; set; } = 0f;
     public float DamageCooldown { get; set; } = 0f;
@@ -36,6 +37,12 @@ public class ConnectedClient
 public class GameServer : IGameSubject
 {
     public ConcurrentDictionary<WebSocket, ConnectedClient> Clients { get; } = new();
+    private readonly ConcurrentQueue<Action> _pendingActions = new();
+
+    /// <summary>
+    /// Enqueues a server action to be executed safely on the game loop tick.
+    /// </summary>
+    public void EnqueueAction(Action action) => _pendingActions.Enqueue(action);
 
     private readonly List<IGameObserver> _observers = new();
     private readonly object _observerLock = new();
@@ -121,9 +128,93 @@ public class GameServer : IGameSubject
             FacingDy = 0f
         };
 
-        Clients[socket] = new ConnectedClient(player);
+        var client = new ConnectedClient(player);
+        UpdatePlayerWeaponState(client);
+
+        Clients[socket] = client;
 
         return player;
+    }
+
+    /// <summary>
+    /// Applies a Decorator pattern upgrade to the player's weapon.
+    /// </summary>
+    public static void UpdatePlayerWeaponState(ConnectedClient client)
+    {
+        var weapon = client.Weapon;
+        client.State.BaseWeaponName = weapon.Name;
+        client.State.WeaponDamage = weapon.Damage;
+        client.State.WeaponInterval = weapon.Interval;
+        client.State.WeaponReach = weapon.Reach;
+        client.State.WeaponHalfWidth = weapon.HalfWidth;
+
+        if (weapon is WeaponDecorator decorator)
+        {
+            var applied = decorator.GetAppliedDecorators();
+            client.State.WeaponName = applied.Count > 0
+                ? $"{weapon.Name} (+{string.Join(", +", applied)})"
+                : weapon.Name;
+        }
+        else
+        {
+            client.State.WeaponName = weapon.Name;
+        }
+    }
+
+    /// <summary>
+    /// Applies a Decorator pattern upgrade to the player's weapon with validation and limits.
+    /// </summary>
+    public bool UpgradeWeapon(WebSocket socket, string upgradeType)
+    {
+        if (!Clients.TryGetValue(socket, out var client))
+            return false;
+
+        switch (upgradeType.ToLowerInvariant())
+        {
+            case "speed":
+                if (client.Weapon.Interval <= AttackSpeedDecorator.MinInterval + 0.001f)
+                {
+                    Console.WriteLine($"[Weapon Upgrade] Player {client.State.Id} speed upgrade skipped: already at minimum interval ({AttackSpeedDecorator.MinInterval:0.00}s).");
+                    return false;
+                }
+                client.Weapon = new AttackSpeedDecorator(client.Weapon);
+                break;
+
+            case "damage":
+                if (client.Weapon.Damage >= DamageBoostDecorator.MaxDamage - 0.001f)
+                {
+                    Console.WriteLine($"[Weapon Upgrade] Player {client.State.Id} damage upgrade skipped: already at max damage ({DamageBoostDecorator.MaxDamage:0.0}).");
+                    return false;
+                }
+                client.Weapon = new DamageBoostDecorator(client.Weapon);
+                break;
+
+            case "range":
+                if (client.Weapon.Reach >= RangeDecorator.MaxReach - 0.001f)
+                {
+                    Console.WriteLine($"[Weapon Upgrade] Player {client.State.Id} range upgrade skipped: already at max reach ({RangeDecorator.MaxReach:0.00}).");
+                    return false;
+                }
+                client.Weapon = new RangeDecorator(client.Weapon);
+                break;
+
+            case "reset":
+                client.Weapon = new WhipWeapon();
+                break;
+
+            default:
+                return false;
+        }
+
+        UpdatePlayerWeaponState(client);
+
+        Console.WriteLine($"[Weapon Upgrade] Player {client.State.Id} applied '{upgradeType}' -> " +
+                          $"{client.State.WeaponName} " +
+                          $"(Damage: {client.Weapon.Damage:0.0}, " +
+                          $"Interval: {client.Weapon.Interval:0.00}s, " +
+                          $"Reach: {client.Weapon.Reach:0.00}, " +
+                          $"HalfWidth: {client.Weapon.HalfWidth:0.00})");
+        return true;
     }
 
     public void RemovePlayer(WebSocket socket)
@@ -137,6 +228,18 @@ public class GameServer : IGameSubject
     /// </summary>
     public void Tick(float deltaTime)
     {
+        while (_pendingActions.TryDequeue(out var action))
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Server] Error executing pending action: {ex.Message}");
+            }
+        }
+
         Spawner.Update(deltaTime);
 
         var clients = Clients.Values.ToList();

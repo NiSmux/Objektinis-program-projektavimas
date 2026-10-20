@@ -94,7 +94,7 @@ public class Renderer
             // Attack line & slash ONLY appears when an attack is actively being executed
             if (player.AttackAnimTimer > 0f)
             {
-                float reachPixels = 1.2f * TileSize;
+                float reachPixels = (player.WeaponReach > 0f ? player.WeaponReach * 0.75f : 1.2f) * TileSize;
                 float endX = centerX + ndx * reachPixels;
                 float endY = centerY + ndy * reachPixels;
 
@@ -105,7 +105,7 @@ public class Renderer
                 // Whip slash cross-bar showing sweep area
                 float perpX = -ndy;
                 float perpY = ndx;
-                float halfWidthPixels = 0.6f * TileSize;
+                float halfWidthPixels = (player.WeaponHalfWidth > 0f ? player.WeaponHalfWidth * 0.6f : 0.6f) * TileSize;
                 using var slashPen = new Pen(Color.FromArgb(255, 255, 240, 120), 2.5f);
                 g.DrawLine(
                     slashPen,

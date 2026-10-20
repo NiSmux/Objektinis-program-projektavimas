@@ -6,6 +6,8 @@ namespace Rogue.Server.Combat;
 /// </summary>
 public class WhipWeapon : IWeapon
 {
+    public string Name => "Whip";
+
     public float Damage { get; } = 25f;
 
     public float Interval { get; } = 1.0f;

@@ -1,6 +1,7 @@
 using Rogue.Server.Adapter;
 using Rogue.Server.Bridge;
 using Rogue.Server.Builder;
+using Rogue.Server.Combat;
 using Rogue.Server.Enemies;
 using Rogue.Server.Game;
 using Rogue.Server.Observer;
@@ -107,6 +108,25 @@ async Task HandleClient(WebSocket socket)
                 break;
 
             string json = Encoding.UTF8.GetString(buffer, 0, result.Count);
+            using (var doc = JsonDocument.Parse(json))
+            {
+                if (doc.RootElement.TryGetProperty("UpgradeType", out var upgradeProp))
+                {
+                    string? upgradeType = upgradeProp.GetString();
+                    if (!string.IsNullOrEmpty(upgradeType))
+                    {
+                        server.EnqueueAction(() =>
+                        {
+                            if (server.UpgradeWeapon(socket, upgradeType))
+                            {
+                                _ = server.NotifyAsync();
+                            }
+                        });
+                    }
+                    continue;
+                }
+            }
+
             MovePacket? move = JsonSerializer.Deserialize<MovePacket>(json);
             if (move == null) continue;
 

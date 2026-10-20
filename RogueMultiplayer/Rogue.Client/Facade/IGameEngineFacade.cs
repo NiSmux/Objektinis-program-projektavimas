@@ -28,6 +28,7 @@ public interface IGameEngineFacade
     void Dash();
     void Recall();
     void UsePotion();
+    void UpgradeWeapon(string upgradeType);
 
     // Loop & Rendering Operations
     void Update(float dt);

@@ -55,6 +55,7 @@ public sealed class GameEngineFacade : IGameEngineFacade
 
         _network.GameStateReceived += OnServerStateReceived;
         _world.LocalPlayerDamaged += OnLocalPlayerDamaged;
+        _world.LocalPlayerWeaponUpdated += OnLocalPlayerWeaponUpdated;
     }
 
     public async Task StartAsync()
@@ -119,6 +120,11 @@ public sealed class GameEngineFacade : IGameEngineFacade
         NotificationReceived?.Invoke("Consuming healing potion (+25 HP)!", Color.LimeGreen);
     }
 
+    public void UpgradeWeapon(string upgradeType)
+    {
+        _ = _network.SendUpgradeAsync(upgradeType);
+    }
+
     public void Update(float dt)
     {
         _combatFeedback.Update(dt);
@@ -141,5 +147,13 @@ public sealed class GameEngineFacade : IGameEngineFacade
     {
         _combatFeedback.AddText($"-{damage:0} HP", _world.LocalPlayer.X, _world.LocalPlayer.Y - 0.3f, Color.Red, 1.0f);
         NotificationReceived?.Invoke($"Took {damage:0} damage!", Color.OrangeRed);
+    }
+
+    private void OnLocalPlayerWeaponUpdated(Player player)
+    {
+        _combatFeedback.AddText("UPGRADED!", player.X, player.Y - 0.5f, Color.LimeGreen, 1.2f);
+        NotificationReceived?.Invoke(
+            $"Server confirmed upgrade: {player.WeaponName} (Dmg: {player.WeaponDamage:0.0}, Int: {player.WeaponInterval:0.00}s, Reach: {player.WeaponReach:0.00})",
+            Color.LimeGreen);
     }
 }

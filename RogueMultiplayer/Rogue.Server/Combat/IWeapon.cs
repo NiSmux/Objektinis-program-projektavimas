@@ -2,10 +2,13 @@ namespace Rogue.Server.Combat;
 
 /// <summary>
 /// Defines the contract for player weapons.
-/// Designed for future Decorator pattern extensions (damage, attack speed, range modifiers).
+/// Designed for Decorator pattern extensions (damage, attack speed, range modifiers).
 /// </summary>
 public interface IWeapon
 {
+    /// <summary>The base or display name of the weapon.</summary>
+    string Name => GetType().Name;
+
     /// <summary>Damage dealt per successful hit.</summary>
     float Damage { get; }
 
